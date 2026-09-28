@@ -1,94 +1,82 @@
-# simple-agent
+# 🏋️ FitPulse Coach - AI Workout & Performance Assistant
 
-Simple ReAct agent
-Agent generated with `agents-cli` version `1.1.0`
+FitPulse Coach is an intelligent AI fitness agent built with Google's **Agent Development Kit (ADK)**, **Vertex AI Memory Bank**, **Google Cloud Firestore**, **Google Cloud Storage (GCS)**, **Imagen 3**, **Gemini Omni Video**, and **A2UI**.
 
-## Project Structure
+It helps athletes track workout sets and reps, calculate One-Rep Max (1RM) and BMI metrics, search exercise catalogs, inspect muscle anatomy diagrams, generate achievement badges, and synthesize AI fitness videos.
 
-```
-simple-agent/
-├── app/         # Core agent code
-│   ├── agent.py               # Main agent logic
-│   ├── fast_api_app.py        # FastAPI Backend server
-│   └── app_utils/             # App utilities and helpers
-├── tests/                     # Unit, integration, and load tests
-├── GEMINI.md                  # AI-assisted development guide
-└── pyproject.toml             # Project dependencies
-```
-
-> 💡 **Tip:** Use [Antigravity CLI](https://antigravity.google/) for AI-assisted development - project context is pre-configured in `GEMINI.md`.
-
-## Requirements
-
-Before you begin, ensure you have:
-- **uv**: Python package manager (used for all dependency management in this project) - [Install](https://docs.astral.sh/uv/getting-started/installation/) ([add packages](https://docs.astral.sh/uv/concepts/dependencies/) with `uv add <package>`)
-- **agents-cli**: Agents CLI - Install with `uv tool install google-agents-cli`
-- **Google Cloud SDK**: For GCP services - [Install](https://cloud.google.com/sdk/docs/install)
-
-
-## Quick Start
-
-Install `agents-cli` and its skills if not already installed:
-
-```bash
-uvx google-agents-cli setup
-```
-
-Install required packages:
-
-```bash
-agents-cli install
-```
-
-Test the agent with a local web server:
-
-```bash
-agents-cli playground
-```
-
-You can also use features from the [ADK](https://adk.dev/) CLI with `uv run adk`.
-
-## Commands
-
-| Command              | Description                                                                                 |
-| -------------------- | ------------------------------------------------------------------------------------------- |
-| `agents-cli install` | Install dependencies using uv                                                         |
-| `agents-cli playground` | Launch local development environment                                                  |
-| `agents-cli lint`    | Run code quality checks                                                               |
-| `agents-cli eval`    | Evaluate agent behavior (generate, grade, analyze, and more — see `agents-cli eval --help`) |
-| `uv run pytest tests/unit tests/integration` | Run unit and integration tests                                                        |
-| `agents-cli deploy`  | Deploy agent to Agent Runtime                                                                |
-| `agents-cli publish gemini-enterprise` | Register deployed agent to Gemini Enterprise                    || [A2A Inspector](https://github.com/a2aproject/a2a-inspector) | Launch A2A Protocol Inspector                                                        |
-
-## 🛠️ Project Management
-
-| Command | What It Does |
-|---------|--------------|
-| `agents-cli scaffold enhance` | Add CI/CD pipelines and Terraform infrastructure |
-| `agents-cli infra cicd` | One-command setup of entire CI/CD pipeline + infrastructure |
-| `agents-cli scaffold upgrade` | Auto-upgrade to latest version while preserving customizations |
+![FitPulse Coach Demo](demo.gif)
 
 ---
 
-## Development
+## ⚡ Wired Capabilities & Google Cloud Integrations
 
-Edit your agent logic in `app/agent.py` and test with `agents-cli playground` - it auto-reloads on save.
+Based on the codebase in `app/` and `agents-cli-manifest.yaml`, FitPulse Coach integrates the following Google Cloud services and tools:
 
-## Deployment
+### 🧠 1. Cross-Session Long-Term Memory
+- **Vertex AI Memory Bank**: Integrates `PreloadMemoryTool` and Vertex AI Memory Bank (`projects/qwiklabs-gcp-03-4842e70d567f/locations/us-east1/reasoningEngines/8162226767818391552`) to remember user workout history, preferences, and goals across sessions.
 
-```bash
-gcloud config set project <your-project-id>
-agents-cli deploy
+### 💾 2. Persistent Database Storage
+- **Google Cloud Firestore**: Persists user workout entries, set/rep logs, and timestamps via `log_workout_entry` in the `qwiklabs-gcp-03-4842e70d567f` GCP project.
+
+### 🖼️ 3. AI Badge Image Generation & Public Storage
+- **Gemini Imagen 3 / GCS**: `generate_workout_badge_image` generates custom workout achievement badges using Vertex AI image generation (`imagen-3.0-generate-002` / `gemini-3.1-flash-lite-image`), uploads the bytes directly to a public GCS bucket (`fitpulse-coach-public-4842e70d567f`), and returns the public HTTPS URL.
+
+### 🎥 4. AI Video Generation
+- **Gemini Omni Video (`gemini-omni-flash-preview`)**: `generate_fitness_video` synthesizes 5-second cinematic workout videos in the `global` region, saves artifacts via `tool_context.save_artifact`, uploads bytes to GCS, and returns direct video streaming URLs.
+
+### 🎨 5. Agent Development Kit (ADK) & A2UI Cards
+- **A2UI Schema Manager (v0.8 Basic Catalog)**: Formats response payloads into rich visual display cards (headings, columns, rows, images, and dividers) rendered directly in the custom FastAPI frontend.
+
+### 📊 6. Fitness Calculators & Exercise Utilities
+- **`calculate_fitness_metrics`**: Computes estimated One-Rep Max (Epley formula) and BMI metrics.
+- **`search_exercise_catalog`**: Queries structured exercise instructions by muscle group and equipment.
+- **`get_muscle_anatomy_info`**: Returns targeted muscle group diagrams and action details.
+
+---
+
+## 🛠️ Project Structure
+
+```
+fitpulse-coach/
+├── app/                      # ADK Agent Code
+│   ├── agent.py              # Root agent, tools, callbacks, & A2UI manager
+│   ├── a2ui_utils.py         # A2UI event & message schema helper
+│   └── __init__.py
+├── frontend/                 # Web Application Frontend & Proxy
+│   ├── main.py               # FastAPI proxy server (A2A protocol)
+│   └── static/               # HTML5 UI, marked.js, audio, and styling
+│       ├── index.html        # Athletic dark theme UI & badge gallery
+│       └── lofi_music.wav    # Upbeat lo-fi background audio track
+├── demo.gif                  # Inline looping demo recording
+├── record_demo.py            # Playwright browser demo recorder
+├── agents-cli-manifest.yaml  # Agent deployment configuration
+└── README.md
 ```
 
-To add CI/CD and Terraform, run `agents-cli scaffold enhance`.
-To set up your production infrastructure, run `agents-cli infra cicd`.
+---
 
-## Observability
+## 🚀 Setup & Local Execution Instructions
 
-Built-in telemetry exports to Cloud Trace, BigQuery, and Cloud Logging.
+To run FitPulse Coach locally on your workstation:
 
-## A2A Inspector
+### 1. Install Dependencies
+Ensure `uv` and Python 3.11+ are installed:
+```bash
+uv pip install -r frontend/requirements.txt
+```
 
-This agent supports the [A2A Protocol](https://a2a-protocol.org/). Use the [A2A Inspector](https://github.com/a2aproject/a2a-inspector) to test interoperability.
-See the [A2A Inspector docs](https://github.com/a2aproject/a2a-inspector) for details.
+### 2. Set Environment Variables
+Set your Agent Engine resource name and agent directory:
+```bash
+export AGENT_ENGINE_RESOURCE_NAME="projects/673706048933/locations/us-east1/reasoningEngines/3229518538452500480"
+export AGENT_DIRECTORY="app"
+```
+
+### 3. Start the Web Server
+Run the FastAPI proxy server from the `frontend/` directory:
+```bash
+cd frontend
+uv run python main.py
+```
+
+The web app will start on port `8080`. Open your browser locally to interact with FitPulse Coach.
