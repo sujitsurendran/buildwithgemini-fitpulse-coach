@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitPulse Coach - AI Workout & Performance Assistant</title>
+<meta name="description" content="Personalized AI workout coaching, exercise catalog search, 1RM/BMI metrics, muscle anatomy diagrams, and achievement badges.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+<!-- Marked.js for Markdown Rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --bg-dark: #0b0f19;
+    --bg-surface: #131b2e;
+    --bg-card: #1e293b;
+    --border-light: rgba(255, 255, 255, 0.08);
+    --border-glow: rgba(16, 185, 129, 0.3);
+    --accent-emerald: #10b981;
+    --accent-cyan: #06b6d4;
+    --accent-gradient: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+    --accent-glow: 0 0 20px rgba(16, 185, 129, 0.25);
+    --user-bubble: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    --agent-bubble: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* --- Top Header --- */
+  header {
+    background: rgba(19, 27, 46, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-light);
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--accent-glow);
+  }
+
+  .brand-icon span {
+    color: #0b0f19;
+    font-weight: 700;
+    font-size: 1.4rem;
+  }
+
+  .header-title-container h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header-title-container p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  /* User ID Selector Pill */
+  .user-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .user-selector input {
+    background: transparent;
+    border: none;
+    color: var(--accent-emerald);
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.82rem;
+    width: 90px;
+    outline: none;
+  }
+
+  /* Badge Gallery Button */
+  .badge-gallery-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .badge-gallery-btn:hover {
+    background: rgba(245, 158, 11, 0.22);
+    transform: translateY(-1px);
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--accent-emerald);
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid var(--border-glow);
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-emerald);
+    box-shadow: 0 0 8px var(--accent-emerald);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* --- Chat Area --- */
+  #log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    max-width: 860px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    scroll-behavior: smooth;
+  }
+
+  /* Empty State / Welcome Screen */
+  .welcome-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 1.8rem;
+    text-align: center;
+    margin: auto 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+
+  .welcome-card .icon-wrap {
+    width: 56px;
+    height: 56px;
+    background: var(--accent-gradient);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem auto;
+    box-shadow: var(--accent-glow);
+  }
+
+  .welcome-card .icon-wrap span {
+    font-size: 2rem;
+    color: #0b0f19;
+  }
+
+  .welcome-card h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .welcome-card p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin: 0 0 1.2rem 0;
+    line-height: 1.5;
+  }
+
+  /* Messages & Dialogue Layout */
+  .msg-wrapper {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeInMsg 0.3s forwards ease-out;
+  }
+
+  @keyframes fadeInMsg {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-wrapper.user {
+    flex-direction: row-reverse;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.2rem;
+  }
+
+  .msg-wrapper.agent .avatar {
+    background: var(--accent-gradient);
+    color: #0b0f19;
+    box-shadow: var(--accent-glow);
+  }
+
+  .msg-wrapper.user .avatar {
+    background: var(--user-bubble);
+    color: #ffffff;
+  }
+
+  .msg-content {
+    max-width: 82%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .sender-name {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-left: 0.2rem;
+  }
+
+  .msg-wrapper.user .sender-name {
+    text-align: right;
+    margin-right: 0.2rem;
+  }
+
+  .bubble {
+    padding: 0.85rem 1.1rem;
+    border-radius: 14px;
+    background: var(--agent-bubble);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    line-height: 1.55;
+    font-size: 0.95rem;
+    word-break: break-word;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  /* Markdown content inside bubble */
+  .bubble p { margin: 0 0 0.5rem 0; }
+  .bubble p:last-child { margin-bottom: 0; }
+  .bubble ul, .bubble ol { margin: 0.3rem 0 0.5rem 1.2rem; padding: 0; }
+  .bubble li { margin-bottom: 0.25rem; }
+  .bubble code { background: rgba(0,0,0,0.4); padding: 0.15rem 0.4rem; border-radius: 4px; font-family: monospace; font-size: 0.88rem; }
+  .bubble pre { background: rgba(0,0,0,0.5); padding: 0.75rem; border-radius: 8px; overflow-x: auto; }
+  .bubble pre code { background: none; padding: 0; }
+  .bubble strong { color: var(--accent-emerald); }
+
+  .msg-wrapper.user .bubble {
+    background: var(--user-bubble);
+    color: #ffffff;
+    border: none;
+    border-bottom-right-radius: 4px;
+  }
+  .msg-wrapper.user .bubble strong { color: #ffffff; }
+
+  .msg-wrapper.agent .bubble {
+    border-bottom-left-radius: 4px;
+  }
+
+  .bubble.rich {
+    background: transparent;
+    border: none;
+    padding: 0;
+    max-width: 100%;
+    white-space: normal;
+    box-shadow: none;
+  }
+
+  /* --- Bottom Control Bar --- */
+  .control-area {
+    max-width: 860px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 1.2rem 1.2rem 1.2rem;
+  }
+
+  /* Clickable Example Prompts Row */
+  .prompts-container {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.3rem;
+    scrollbar-width: thin;
+  }
+
+  .prompt-chip {
+    background: rgba(19, 27, 46, 0.9);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    padding: 0.5rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+  }
+
+  .prompt-chip:hover {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    transform: translateY(-1px);
+    box-shadow: var(--accent-glow);
+  }
+
+  .prompt-chip span.icon {
+    font-size: 1.05rem;
+  }
+
+  /* Input Form */
+  form {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    padding: 0.4rem 0.5rem 0.4rem 1rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    transition: border-color 0.2s ease;
+    align-items: center;
+  }
+
+  form:focus-within {
+    border-color: var(--accent-emerald);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+  }
+
+  input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-family: inherit;
+    outline: none;
+  }
+
+  input::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* Voice Button */
+  button.mic-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  button.mic-btn:hover {
+    color: var(--accent-emerald);
+    background: rgba(16, 185, 129, 0.1);
+  }
+
+  button.mic-btn.listening {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.15);
+    animation: micPulse 1.2s infinite;
+  }
+
+  @keyframes micPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  button.send-btn {
+    padding: 0.65rem 1.2rem;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent-gradient);
+    color: #0b0f19;
+    font-weight: 700;
+    font-size: 0.9rem;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    box-shadow: var(--accent-glow);
+  }
+
+  button.send-btn:hover {
+    opacity: 0.92;
+    transform: scale(1.02);
+  }
+
+  button.send-btn:active {
+    transform: scale(0.98);
+  }
+
+  /* --- Badge Modal --- */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(11, 15, 25, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 1.5rem;
+    max-width: 540px;
+    width: 90%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 0.75rem;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #fbbf24;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1.4rem;
+  }
+
+  .badge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+  }
+
+  .badge-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 0.6rem;
+    text-align: center;
+    transition: transform 0.2s ease;
+  }
+
+  .badge-item:hover {
+    transform: translateY(-3px);
+    border-color: rgba(245, 158, 11, 0.4);
+  }
+
+  .badge-item img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 0.4rem;
+  }
+
+  .badge-item p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* --- A2UI Component Styles (Custom Dark Aesthetic) --- */
+  .a2card {
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 1.25rem;
+    background: var(--bg-card);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    max-width: 100%;
+    color: var(--text-primary);
+  }
+  .a2card + .a2card, .a2col > .a2card { margin-top: 0.75rem; }
+  .a2col { display: flex; flex-direction: column; gap: 0.5rem; }
+  .a2row { display: flex; flex-direction: row; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+  .a2row.between { justify-content: space-between; }
+  .a2text { margin: 0; line-height: 1.5; font-family: inherit; }
+  .a2text.a2-h1 { font-size: 1.4rem; font-weight: 800; color: #ffffff; }
+  .a2text.a2-h2 { font-size: 1.2rem; font-weight: 700; color: #ffffff; }
+  .a2text.a2-h3 { font-size: 1.05rem; font-weight: 600; color: var(--accent-emerald); }
+  .a2text.a2-h4 { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
+  .a2text.a2-caption { font-size: 0.85rem; color: var(--text-secondary); }
+  .a2divider { border: none; border-top: 1px solid var(--border-light); margin: 0.6rem 0; width: 100%; }
+  .a2img { max-width: 100%; border-radius: 10px; display: block; border: 1px solid var(--border-light); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+  .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-size: 1.2rem; line-height: 1; vertical-align: middle; color: var(--accent-emerald); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <div class="brand-icon">
+      <span class="material-symbols-outlined">fitness_center</span>
+    </div>
+    <div class="header-title-container">
+      <h1>FitPulse Coach</h1>
+      <p>AI Workout & Performance Assistant</p>
+    </div>
+  </div>
+
+  <div class="header-controls">
+    <!-- Lo-Fi Music Button -->
+    <button class="badge-gallery-btn" id="lofiBtn" onclick="toggleLofiMusic()" style="background:rgba(6,182,212,0.15); border-color:rgba(6,182,212,0.4); color:var(--accent-cyan);">
+      <span>🎵 Lo-Fi Music</span>
+    </button>
+    <audio id="lofiAudio" src="/lofi_music.wav" loop></audio>
+
+    <!-- User ID Selector -->
+    <div class="user-selector">
+      <span>👤 ID:</span>
+      <input id="userIdInput" value="athlete_1" placeholder="user_id" title="Set user ID for memory storage">
+    </div>
+
+    <!-- Badge Gallery Button -->
+    <button class="badge-gallery-btn" onclick="openBadgeModal()">
+      <span>🏆 Badges</span>
+      <span id="badgeCount" style="background:rgba(245,158,11,0.25); padding:0.1rem 0.4rem; border-radius:10px; font-size:0.75rem;">0</span>
+    </button>
+
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      <span>Ready</span>
+    </div>
+  </div>
+</header>
+
+<div id="log">
+  <div class="welcome-card" id="welcome">
+    <div class="icon-wrap">
+      <span class="material-symbols-outlined">bolt</span>
+    </div>
+    <h2>Welcome to FitPulse Coach</h2>
+    <p>Track repetitions, calculate 1RM/BMI metrics, query exercise catalogs, inspect muscle anatomy, generate achievement badges, and generate AI fitness videos.</p>
+    
+    <!-- Quick Fitness & Bodybuilding Video on App Load -->
+    <div style="margin-top: 1.2rem; border-radius: 14px; overflow: hidden; border: 1px solid var(--border-light); box-shadow: 0 8px 25px rgba(0,0,0,0.5);">
+      <div style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); font-size: 0.8rem; font-weight: 600; padding: 0.4rem 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+        <span class="material-symbols-outlined" style="font-size:1rem;">movie</span>
+        <span>Featured Fitness & Bodybuilding Demo Video</span>
+      </div>
+      <video id="welcomeVideo" controls autoplay muted loop style="width: 100%; max-height: 280px; display: block; object-fit: cover; background: #000;">
+        <source src="https://storage.googleapis.com/fitpulse-coach-public-4842e70d567f/fitness_intro.mp4" type="video/mp4">
+        Your browser does not support HTML video playback.
+      </video>
+    </div>
+  </div>
+</div>
+
+<div class="control-area">
+  <!-- 4 Tailored Clickable Example Prompts -->
+  <div class="prompts-container">
+    <div class="prompt-chip" onclick="sendPrompt('Search dumbbell chest exercises in catalog')">
+      <span class="icon">🏋️</span>
+      <span>Search dumbbell chest exercises</span>
+    </div>
+    <div class="prompt-chip" onclick="sendPrompt('Calculate my 1RM for 185 lbs x 8 reps')">
+      <span class="icon">📊</span>
+      <span>Calculate 1RM (185 lbs x 8 reps)</span>
+    </div>
+    <div class="prompt-chip" onclick="sendPrompt('Generate my 50 Pushups Club workout badge')">
+      <span class="icon">🏆</span>
+      <span>Generate 50 Pushups badge</span>
+    </div>
+    <div class="prompt-chip" onclick="sendPrompt('Generate a 5-second video of an athlete doing heavy barbell squats')">
+      <span class="icon">🎥</span>
+      <span>Generate fitness video</span>
+    </div>
+  </div>
+
+  <form id="form">
+    <input id="input" placeholder="Ask FitPulse Coach about workouts, metrics, or badges…" autocomplete="off" autofocus>
+    
+    <!-- Voice STT Mic Button -->
+    <button type="button" class="mic-btn" id="micBtn" title="Speak your workout hands-free" onclick="toggleVoiceInput()">
+      <span class="material-symbols-outlined">mic</span>
+    </button>
+
+    <button type="submit" class="send-btn">
+      <span>Send</span>
+      <span class="material-symbols-outlined" style="font-size:1.1rem; color:#0b0f19;">send</span>
+    </button>
+  </form>
+</div>
+
+<!-- Achievement Badges Modal -->
+<div class="modal-overlay" id="badgeModal" onclick="if(event.target===this) closeBadgeModal()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>🏆 Earned Workout Badges</h3>
+      <button class="close-btn" onclick="closeBadgeModal()">&times;</button>
+    </div>
+    <div class="badge-grid" id="badgeGrid">
+      <p style="color:var(--text-muted); grid-column: 1/-1; text-align:center; padding: 2rem 0;">No achievement badges generated yet. Ask FitPulse Coach to generate a badge!</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const log = document.getElementById("log");
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+const welcome = document.getElementById("welcome");
+const userIdInput = document.getElementById("userIdInput");
+const badgeCount = document.getElementById("badgeCount");
+const badgeGrid = document.getElementById("badgeGrid");
+const badgeModal = document.getElementById("badgeModal");
+const micBtn = document.getElementById("micBtn");
+
+const earnedBadges = [];
+const lofiAudio = document.getElementById("lofiAudio");
+const lofiBtn = document.getElementById("lofiBtn");
+
+function toggleLofiMusic() {
+  if (!lofiAudio) return;
+  if (lofiAudio.paused) {
+    lofiAudio.volume = 0.35;
+    lofiAudio.play().then(() => {
+      if (lofiBtn) lofiBtn.innerHTML = "<span>🎶 Playing Lo-Fi</span>";
+    }).catch(e => console.log("Audio play error:", e));
+  } else {
+    lofiAudio.pause();
+    if (lofiBtn) lofiBtn.innerHTML = "<span>🎵 Lo-Fi Music</span>";
+  }
+}
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function bubble(who) {
+  if (welcome && welcome.parentNode) {
+    welcome.remove();
+  }
+  const wrapper = el("div", "msg-wrapper " + who);
+  const avatar = el("div", "avatar");
+  const avatarIcon = el("span", "material-symbols-outlined", who === "agent" ? "fitness_center" : "person");
+  avatar.appendChild(avatarIcon);
+
+  const content = el("div", "msg-content");
+  const senderName = el("div", "sender-name", who === "agent" ? "FitPulse Coach" : (userIdInput.value.trim() || "You"));
+  const b = el("div", "bubble");
+
+  content.appendChild(senderName);
+  content.appendChild(b);
+
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(content);
+
+  log.appendChild(wrapper);
+  log.scrollTop = log.scrollHeight;
+  return b;
+}
+
+function sendPrompt(text) {
+  input.value = text;
+  form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+}
+
+/* --- Badge Modal Logic --- */
+function registerBadge(url) {
+  if (!url || earnedBadges.includes(url)) return;
+  earnedBadges.push(url);
+  badgeCount.textContent = earnedBadges.length;
+
+  if (earnedBadges.length === 1) badgeGrid.innerHTML = "";
+  
+  const item = el("div", "badge-item");
+  const img = el("img"); img.src = url; img.alt = "Workout Badge";
+  const label = el("p", null, `Badge #${earnedBadges.length}`);
+  const a = el("a"); a.href = url; a.target = "_blank"; a.appendChild(img);
+  item.appendChild(a);
+  item.appendChild(label);
+  badgeGrid.appendChild(item);
+}
+
+function openBadgeModal() { badgeModal.classList.add("open"); }
+function closeBadgeModal() { badgeModal.classList.remove("open"); }
+
+/* --- Hands-Free Voice Input (STT) --- */
+let recognition = null;
+let isListening = false;
+
+if ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRec();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    input.value = transcript;
+    stopListening();
+  };
+
+  recognition.onerror = () => stopListening();
+  recognition.onend = () => stopListening();
+} else {
+  micBtn.style.display = "none";
+}
+
+function toggleVoiceInput() {
+  if (!recognition) return;
+  if (isListening) stopListening();
+  else startListening();
+}
+
+function startListening() {
+  isListening = true;
+  micBtn.classList.add("listening");
+  recognition.start();
+}
+
+function stopListening() {
+  isListening = false;
+  micBtn.classList.remove("listening");
+  try { recognition.stop(); } catch(e){}
+}
+
+/* ----------------------------------------------------------------------------
+ * A2UI mini-renderer (v0.8 Basic Catalog subset).
+ * -------------------------------------------------------------------------- */
+function boundStr(v) {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (typeof v.literalString === "string") return v.literalString;
+  return "";
+}
+
+function childIds(props) {
+  const ids = [];
+  if (props && typeof props.child === "string") ids.push(props.child);
+  const ch = props && props.children;
+  if (ch && Array.isArray(ch.explicitList)) for (const c of ch.explicitList) if (typeof c === "string") ids.push(c);
+  return ids;
+}
+
+function iconName(n) {
+  return String(n || "").replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/\s+/g, "_").toLowerCase();
+}
+
+function buildNode(id, comps, seen) {
+  if (!id || seen.has(id)) return null;
+  seen.add(id);
+  const spec = comps[id];
+  if (!spec || typeof spec !== "object") return null;
+  const type = Object.keys(spec)[0];
+  const props = spec[type] || {};
+  const kids = () => childIds(props).map(cid => buildNode(cid, comps, seen)).filter(Boolean);
+
+  switch (type) {
+    case "Card": {
+      const d = el("div", "a2card"); kids().forEach(n => d.appendChild(n)); return d;
+    }
+    case "Column":
+    case "List": {
+      const horizontal = type === "List" && props.direction === "horizontal";
+      const d = el("div", horizontal ? "a2row" : "a2col"); kids().forEach(n => d.appendChild(n)); return d;
+    }
+    case "Row": {
+      const d = el("div", "a2row" + (props.distribution === "spaceBetween" ? " between" : ""));
+      kids().forEach(n => d.appendChild(n)); return d;
+    }
+    case "Text": {
+      const t = el("div", "a2text");
+      const hint = String(props.usageHint || "body").toLowerCase();
+      if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(hint)) t.classList.add("a2-" + hint);
+      else if (hint === "caption") t.classList.add("a2-caption");
+      t.textContent = boundStr(props.text);
+      return t;
+    }
+    case "Divider":
+      return el("hr", "a2divider");
+    case "Image": {
+      const src = boundStr(props.url || props.src);
+      if (!/^https?:\/\//i.test(src)) return null;
+      registerBadge(src);
+      const img = el("img", "a2img"); img.src = src; img.alt = boundStr(props.alt) || ""; return img;
+    }
+    case "Icon": {
+      const s = el("span", "material-symbols-outlined"); s.textContent = iconName(boundStr(props.name) || props.name); return s;
+    }
+    default:
+      return null;
+  }
+}
+
+function renderSurface(messages, container) {
+  const comps = {};
+  const roots = [];
+  for (const m of messages) {
+    if (m.beginRendering && typeof m.beginRendering.root === "string") roots.push(m.beginRendering.root);
+    const su = m.surfaceUpdate;
+    if (su && Array.isArray(su.components)) for (const c of su.components) if (c && c.id && c.component) comps[c.id] = c.component;
+  }
+  let rootIds = roots.filter(r => comps[r]);
+  if (rootIds.length === 0) {
+    const referenced = new Set();
+    for (const id in comps) { const spec = comps[id]; childIds(spec[Object.keys(spec)[0]] || {}).forEach(c => referenced.add(c)); }
+    rootIds = Object.keys(comps).filter(id => !referenced.has(id));
+  }
+  let drew = false;
+  for (const rid of rootIds) { const node = buildNode(rid, comps, new Set()); if (node) { container.appendChild(node); drew = true; } }
+  return drew;
+}
+
+function flattenText(messages) {
+  const out = [];
+  for (const m of messages) {
+    const su = m.surfaceUpdate;
+    if (su && Array.isArray(su.components)) for (const c of su.components) if (c && c.component && c.component.Text) out.push(boundStr(c.component.Text.text));
+  }
+  return out.join("\n").trim();
+}
+
+function renderReply(b, parts) {
+  b.textContent = "";
+  const texts = parts.filter(p => p && (p.kind === "text" || (!p.kind && p.text))).map(p => p.text || "");
+  const a2ui = parts.filter(p => p && p.kind === "a2ui" && p.data).map(p => p.data);
+
+  const textStr = texts.join("\n").trim();
+  if (textStr) {
+    // Scan for generated image URLs in raw text to collect in badge gallery
+    const imgMatch = textStr.match(/https?:\/\/[^\s<"']+\.(?:png|jpg|jpeg|gif)/gi);
+    if (imgMatch) imgMatch.forEach(url => registerBadge(url));
+
+    const mdContainer = el("div");
+    if (typeof marked !== "undefined" && typeof marked.parse === "function") {
+      mdContainer.innerHTML = marked.parse(textStr);
+    } else {
+      mdContainer.textContent = textStr;
+    }
+
+    // Scan for generated MP4 video URLs and embed video player
+    const videoMatches = textStr.match(/https?:\/\/[^\s<"']+\.mp4[^\s<"']*/gi);
+    if (videoMatches) {
+      videoMatches.forEach(vUrl => {
+        const vWrap = el("div");
+        vWrap.style.marginTop = "0.75rem";
+        vWrap.style.borderRadius = "12px";
+        vWrap.style.overflow = "hidden";
+        vWrap.style.border = "1px solid var(--border-light)";
+        vWrap.style.boxShadow = "0 4px 15px rgba(0,0,0,0.4)";
+
+        const videoEl = document.createElement("video");
+        videoEl.controls = true;
+        videoEl.autoplay = true;
+        videoEl.loop = true;
+        videoEl.muted = true;
+        videoEl.style.width = "100%";
+        videoEl.style.maxHeight = "320px";
+        videoEl.style.display = "block";
+        videoEl.src = vUrl;
+
+        vWrap.appendChild(videoEl);
+        mdContainer.appendChild(vWrap);
+      });
+    }
+
+    b.appendChild(mdContainer);
+  }
+
+  if (a2ui.length) {
+    b.classList.add("rich");
+    if (!renderSurface(a2ui, b)) {
+      const flat = flattenText(a2ui) || "(no card content)";
+      const flatEl = el("div");
+      if (typeof marked !== "undefined" && typeof marked.parse === "function") {
+        flatEl.innerHTML = marked.parse(flat);
+      } else {
+        flatEl.textContent = flat;
+      }
+      b.appendChild(flatEl);
+    }
+  }
+  if (!b.childNodes.length) b.textContent = "(no response)";
+  log.scrollTop = log.scrollHeight;
+}
+
+form.addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const text = input.value.trim();
+  if (!text) return;
+  const currentUserId = userIdInput.value.trim() || "athlete_1";
+
+  bubble("user").textContent = text;
+  input.value = "";
+  const b = bubble("agent"); b.textContent = "…";
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text, user_id: currentUserId })
+    });
+    const raw = await res.text();
+    let data;
+    try { data = JSON.parse(raw); }
+    catch { throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${raw.slice(0, 300)}`); }
+    renderReply(b, data.parts || []);
+  } catch (e) {
+    b.textContent = "Error: " + e.message;
+  }
+});
+</script>
+</body>
+</html>
